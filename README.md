@@ -1,4 +1,4 @@
-# skills
+# kaarma-skills
 
 A curated set of AI agent skills, slash commands, and safety hooks that work across multiple coding CLIs:
 [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Codex CLI](https://github.com/openai/codex),
