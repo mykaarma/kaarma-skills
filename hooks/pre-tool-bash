@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+# Pre-tool safety check for Bash commands
+#
+# Receives JSON via stdin:
+#   {"tool": "Bash", "tool_input": {"command": "..."}}
+#
+# Exit codes:
+#   0 — allow the command to proceed
+#   2 — block the command (the host CLI surfaces stderr to the user)
+#
+# Configuration via environment variables (set in your CLI's settings):
+#   PROTECTED_BRANCHES — pipe-separated regex of branch names that should
+#                        not receive direct commits. Default: "main|master".
+#                        Set to empty string to disable the check.
+#
+# NOTE: This script must be chmod +x. setup.sh handles this automatically
+# for all extensionless files in hooks/.
+
+set -uo pipefail
+
+# ---------------------------------------------------------------------------
+# Parse command from JSON stdin
+# ---------------------------------------------------------------------------
+INPUT=$(cat)
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "BLOCKED: python3 is required to parse Bash hook input safely." >&2
+    echo "Install python3 or disable the hook explicitly; failing open would bypass command safety checks." >&2
+    exit 2
+fi
+
+COMMAND=$(echo "$INPUT" | python3 -c \
+    "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('command') or d.get('input',{}).get('command') or '')" \
+    2>/dev/null) || {
+    echo "BLOCKED: Could not parse Bash hook input." >&2
+    echo "The safety hook is failing closed to avoid allowing dangerous commands unchecked." >&2
+    exit 2
+}
+
+if [ -z "$COMMAND" ]; then
+    echo "BLOCKED: Bash hook input did not include a command." >&2
+    echo "The safety hook is failing closed because an empty command would bypass safety checks." >&2
+    exit 2
+fi
+
+resolve_command_repo() {
+    local command="$1"
+    COMMAND_VALUE="$command" python3 -c '
+import os, pwd, shlex
+
+command = os.environ["COMMAND_VALUE"]
+try:
+    tokens = shlex.split(command)
+except ValueError:
+    print(pwd)
+    raise SystemExit(0)
+
+repo = ""
+for i, token in enumerate(tokens):
+    if token == "git" and i + 2 < len(tokens) and tokens[i + 1] == "-C":
+        repo = tokens[i + 2]
+        break
+
+if not repo and len(tokens) >= 3 and tokens[0] == "cd" and tokens[2] in ("&&", ";"):
+    repo = tokens[1]
+
+print(repo or pwd)
+' 2>/dev/null || pwd
+}
+
+python_guard_check() {
+    local mode="$1"
+    COMMAND_VALUE="$COMMAND" CHECK_MODE="$mode" python3 -c '
+import os, shlex, sys
+
+command = os.environ["COMMAND_VALUE"]
+mode = os.environ["CHECK_MODE"]
+
+try:
+    tokens = shlex.split(command)
+except ValueError:
+    print("parse-error")
+    raise SystemExit(0)
+
+def is_system_path(value):
+    return value.startswith("/etc/") or value == "/etc" or value.startswith("/usr/") or value == "/usr"
+
+if mode == "rm":
+    if tokens and tokens[0] == "rm":
+        args = tokens[1:]
+        targets = []
+        after_double_dash = False
+        for arg in args:
+            if arg == "--":
+                after_double_dash = True
+                continue
+            if after_double_dash or not arg.startswith("-"):
+                targets.append(arg)
+        if any(target in ("/", "~") for target in targets):
+            print("block")
+            raise SystemExit(0)
+    print("")
+elif mode == "tee":
+    for i, token in enumerate(tokens):
+        if token != "tee":
+            continue
+        j = i + 1
+        while j < len(tokens):
+            arg = tokens[j]
+            if arg == "--":
+                j += 1
+                break
+            if not arg.startswith("-"):
+                break
+            j += 1
+        for target in tokens[j:]:
+            if is_system_path(target):
+                print("block")
+                raise SystemExit(0)
+        break
+    print("")
+else:
+    print("")
+' 2>/dev/null || true
+}
+
+# ---------------------------------------------------------------------------
+# 1. Force push to any branch
+# ---------------------------------------------------------------------------
+if echo "$COMMAND" | grep -qiE 'git\s+push.*(--force|-[a-zA-Z]*f[a-zA-Z]*)'; then
+    echo "BLOCKED: Force push detected." >&2
+    echo "Force-pushing rewrites history on the remote and can destroy collaborators' work." >&2
+    echo "If you must, run the command directly in your terminal after explicit review." >&2
+    exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# 2. Direct git commit while on a protected branch
+#    Configurable via PROTECTED_BRANCHES env var (pipe-separated regex).
+# ---------------------------------------------------------------------------
+PROTECTED_BRANCH_RE="${PROTECTED_BRANCHES:-main|master}"
+
+if [ -n "$PROTECTED_BRANCH_RE" ] && echo "$COMMAND" | grep -qiE '\bgit\b.*\bcommit\b'; then
+    TARGET_REPO=$(resolve_command_repo "$COMMAND")
+    CURRENT_BRANCH=$(git -C "$TARGET_REPO" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+    if echo "$CURRENT_BRANCH" | grep -qE "^(${PROTECTED_BRANCH_RE})$"; then
+        echo "BLOCKED: Direct commit on protected branch '${CURRENT_BRANCH}' detected." >&2
+        echo "Commits to protected branches should go through a Pull Request." >&2
+        echo "Create a feature branch first:  git checkout -b feature/your-description" >&2
+        echo "(To customize protected branches, set PROTECTED_BRANCHES env var; set to empty to disable.)" >&2
+        exit 2
+    fi
+fi
+
+# ---------------------------------------------------------------------------
+# 3. Destructive SQL — DROP TABLE / DROP DATABASE (case-insensitive)
+# ---------------------------------------------------------------------------
+if echo "$COMMAND" | grep -qiE 'DROP\s+(TABLE|DATABASE)'; then
+    echo "BLOCKED: Destructive SQL statement detected (DROP TABLE / DROP DATABASE)." >&2
+    echo "Executing schema-dropping statements via the shell is not allowed." >&2
+    echo "If this is intentional, run it manually in a database console with explicit confirmation." >&2
+    exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# 4. Catastrophic filesystem deletion — rm -rf / or rm -rf ~
+# ---------------------------------------------------------------------------
+if echo "$COMMAND" | grep -qiE "rm\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\s+(\/|~|\"\/\"|\"~\"|'/'|'~')" || \
+   [ "$(python_guard_check rm)" = "block" ]; then
+    echo "BLOCKED: Catastrophic rm -rf detected targeting / or ~." >&2
+    echo "Deleting the filesystem root or home directory is not allowed." >&2
+    exit 2
+fi
+
+if echo "$COMMAND" | grep -qE 'rm -rf /($| )' || \
+   echo "$COMMAND" | grep -qE 'rm -rf ~($| )' || \
+   echo "$COMMAND" | grep -qE 'rm -fr /($| )' || \
+   echo "$COMMAND" | grep -qE 'rm -fr ~($| )'; then
+    echo "BLOCKED: Catastrophic rm -rf detected targeting / or ~." >&2
+    echo "Deleting the filesystem root or home directory is not allowed." >&2
+    exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# 5. Direct writes to system directories /etc/ or /usr/
+# ---------------------------------------------------------------------------
+if echo "$COMMAND" | grep -qiE '(>\s*/etc/|>\s*/usr/|tee\s+/etc/|tee\s+/usr/|cp\s+.*\s+/etc/|cp\s+.*\s+/usr/|mv\s+.*\s+/etc/|mv\s+.*\s+/usr/)' || \
+   [ "$(python_guard_check tee)" = "block" ]; then
+    echo "BLOCKED: Attempted write to system directory (/etc/ or /usr/)." >&2
+    echo "Direct modifications to system directories are not allowed." >&2
+    echo "If system configuration changes are needed, do them manually with appropriate sudo and review." >&2
+    exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# All checks passed — allow the command
+# ---------------------------------------------------------------------------
+exit 0

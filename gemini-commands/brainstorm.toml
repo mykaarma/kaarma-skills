@@ -1,0 +1,15 @@
+description = "Brainstorm a feature or requirement before implementation. Explores intent, requirements, and design before writing any code."
+
+prompt = """
+Before implementing anything, pause and explore the user's intent:
+
+1. **Clarify the problem** — ask: what pain is this solving? Who uses it? What does success look like?
+2. **Explore the codebase** — search for existing patterns, utilities, and components that can be reused. Avoid proposing new abstractions when suitable ones already exist.
+3. **Identify constraints** — technical limits, security requirements (check guardrails G1–G11 from AGENTS.md), performance expectations.
+4. **Design options** — propose 2–3 approaches with trade-offs. Keep it concise.
+5. **Get alignment** — confirm the chosen direction before writing any code.
+
+Do NOT write any implementation code until the user has explicitly approved an approach.
+
+{{args}}
+"""

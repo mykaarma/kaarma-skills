@@ -1,0 +1,20 @@
+description = "Load recent work context — reads git status, recent commits, plan files, and summarizes pending work"
+
+prompt = """
+Load recent work context by reconstructing what was in progress.
+
+1. Check git state — run `git status` and `git log --oneline -5`. Note the branch, uncommitted changes, and recent commit messages.
+
+2. Find recent plan files — look for files modified in the last 7 days under `docs/plans/`, `plans/`, and `.claude/plans/`. Read any found files and extract open tasks.
+
+3. Infer in-progress work — from the branch name and recent commits, determine what feature or fix was being worked on. Note staged or unstaged files that suggest incomplete work.
+
+4. Summarize:
+   "Current work context: [branch/feature]. Last changes: [top commit(s) or 'no commits yet']. Uncommitted changes: [files or 'none']. Pending from plan: [open tasks or 'no plan files found']."
+
+5. Confirm with the engineer: "Does this match what you remember? Want to continue where we left off, or tackle something else first?"
+
+If git is unavailable, skip to plan files. If no plan files exist either, say so and ask the engineer to describe what they were working on.
+
+{{args}}
+"""

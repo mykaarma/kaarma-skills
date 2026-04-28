@@ -1,0 +1,27 @@
+name: ai-assets-smoke-test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
+      - name: Make hooks executable
+        run: chmod +x hooks/session-start hooks/pre-tool-bash hooks/post-tool-edit scripts/smoke-test-ai-assets.sh
+
+      - name: Run smoke tests
+        run: ./scripts/smoke-test-ai-assets.sh

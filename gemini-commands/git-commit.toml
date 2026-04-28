@@ -1,0 +1,37 @@
+description = "Stage, commit, and push changes with conventional commit messages. Detects MYK ticket from branch name and enforces protected branch rules."
+
+prompt = """
+Stage and commit changes following myKaarma's conventional commit format.
+
+**Step 1: Analyze changes**
+Run `git status`, `git diff`, and `git diff --cached` to understand what changed.
+
+**Step 2: Detect ticket ID from branch**
+Run `git rev-parse --abbrev-ref HEAD` and extract `MYK-XXXX` if present.
+- Branch `MYK-16256-jwt-refresh` → prefix every commit with `MYK-16256: `
+- Branch `main` or `feature/add-auth` → no prefix
+
+**Step 3: Write the commit message**
+Format: `[MYK-XXXX: ]<type>(<scope>): <description>`
+
+Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
+Scope: infer from file paths (api, db, worker, auth, config, k8s, ci, etc.)
+
+Examples:
+- `MYK-16256: feat(auth): add JWT refresh token support`
+- `fix(api): handle null response from payment service`
+- `MYK-17909: test(worker): add duplicate job prevention tests`
+
+**Step 4: Stage and commit**
+Stage specific files (avoid `git add -A` unless intentional).
+Pre-commit checklist: no debug code, no secrets, no console.logs, tests pass.
+
+**Step 5: Push (if requested)**
+NEVER push directly to: `main`, `master`, `canary`, `master-v2`.
+For protected branches, say: "This is a protected branch — open a PR instead."
+For feature branches: `git push origin HEAD` or `git push -u origin <branch>`.
+
+For multiple logical changes, create separate commits (one per logical unit).
+
+{{args}}
+"""

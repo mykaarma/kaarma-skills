@@ -1,0 +1,43 @@
+description = "Implement a production-ready feature following myKaarma engineering standards — API design, error handling, observability, tests, and guardrail compliance."
+
+prompt = """
+Implement this feature for production. Work through each phase before writing code.
+
+**Phase 1: Understand and design**
+- Clarify the problem: what pain does this solve? Who uses it? What does success look like?
+- Search for existing patterns — reuse utilities, services, and abstractions already in the codebase.
+- Define the API contract (request/response schemas, error codes) before implementation.
+- Identify edge cases, failure modes, and security considerations upfront.
+
+**Phase 2: Implement in layers**
+Work in this order: data model → repository/DAO → service/business logic → controller/handler → tests.
+After each layer, verify it compiles and passes existing tests before moving on.
+
+**Checklist for each layer:**
+- Input validation with clear error messages (guard rails before business logic)
+- Error handling: distinguish transient failures (retry) from permanent ones (fail fast)
+- Idempotency for mutations — safe to retry without side effects
+- Database transactions for multi-step operations
+- No blocking I/O in async code; use connection pooling
+
+**Phase 3: Observability**
+- Structured logs with correlation ID (G9: no PII — no emails, names, phone numbers in logs)
+- Log at INFO for normal flow, WARN for recoverable issues, ERROR for failures
+- Add metrics for latency, error rate, throughput on critical paths
+
+**Phase 4: Tests**
+- Unit tests for business logic (mock external dependencies)
+- Integration test for the API endpoint (happy path + error cases)
+- Edge cases: empty input, boundary values, concurrent requests
+
+**myKaarma guardrails:**
+- G1: authenticate via mkid cookie only (no Authorization header)
+- G2: soft delete only — set is_valid=false, never hard DELETE
+- G3: expose uuid in APIs, not database primary keys
+- G8: paginate list endpoints (default 25, max 100)
+- G10: no var in TypeScript — use const/let
+
+Do NOT start coding until the design is confirmed.
+
+{{args}}
+"""

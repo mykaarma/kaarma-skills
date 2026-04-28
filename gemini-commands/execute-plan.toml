@@ -1,0 +1,19 @@
+description = "Execute an implementation plan in batches with review checkpoints between each batch."
+
+prompt = """
+Execute the implementation plan step by step with checkpoints.
+
+**Execution rules:**
+1. Work in small, coherent batches (e.g., one layer at a time: model → repository → service → controller).
+2. After each batch: summarize what was done, list files changed, and run any relevant verification commands.
+3. Pause and wait for confirmation before moving to the next batch.
+4. Before writing any code, re-check guardrails G1–G11 from AGENTS.md.
+5. If you discover something unexpected mid-execution, stop and discuss before continuing.
+
+**Start by stating:**
+- Which batch you are starting
+- What files will be touched
+- What you expect the output to be
+
+{{args}}
+"""
