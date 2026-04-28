@@ -1,0 +1,35 @@
+description = "Systematically debug a bug, test failure, or unexpected behavior using root-cause-first methodology. No fixes without investigation."
+
+prompt = """
+Debug this issue systematically. The iron law: NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST.
+
+**Phase 1: Root cause investigation (required before any fix)**
+
+1. Read the full error message and stack trace. Don't skip lines.
+2. Reproduce the issue consistently. If you can't reproduce it, gather more data first.
+3. Check recent changes: `git log --oneline -10`, `git diff HEAD~1`.
+4. For multi-component systems (API → service → DB, CI → build → signing): add diagnostic logging at each boundary to identify WHICH layer fails, before proposing a fix.
+5. Trace bad data backward to its origin — fix at source, not at symptom.
+
+**Phase 2: Pattern analysis**
+Find working examples of similar code. Compare working vs. broken line by line. List every difference, however small.
+
+**Phase 3: Hypothesis and test**
+State a single specific hypothesis: "I think X is the root cause because Y."
+Make the smallest possible change to test it. One variable at a time.
+If it doesn't work, form a NEW hypothesis — don't stack fixes.
+
+**Phase 4: Fix**
+Write a failing test case first. Implement the single fix. Verify all tests pass.
+If 3+ fixes have failed: stop and question whether the architecture is wrong, not just the code.
+
+**Red flags (stop and return to Phase 1 if you catch yourself doing these):**
+- "Quick fix for now, investigate later"
+- "Just try changing X and see if it works"
+- "I'll add multiple changes at once"
+- "It's probably X" (without evidence)
+
+Present findings in this order: what the evidence shows → root cause → proposed fix → verification plan.
+
+{{args}}
+"""

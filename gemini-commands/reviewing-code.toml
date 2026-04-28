@@ -1,0 +1,39 @@
+description = "Perform a thorough code review for production systems covering security, reliability, performance, observability, and maintainability."
+
+prompt = """
+Review the provided code or PR for production readiness. Work through each category in order.
+
+**Blocking issues (must fix before merge):**
+- Security: SQL injection, XSS, hardcoded secrets, auth bypass, missing input validation
+- Data integrity: missing transactions, no rollback on partial failure, non-idempotent mutations
+- Breaking changes: API contract changes, missing DB migration, incompatible schema changes
+- Resource leaks: unclosed connections, missing try-finally, unbounded memory growth
+- Missing error handling: unhandled exceptions, swallowed errors, no retry on transient failures
+- No tests for new logic
+- G9 violation: PII or tokens in logs
+
+**Important issues (should fix):**
+- Performance: N+1 queries, missing indexes, blocking I/O in async code, missing timeouts
+- Observability: missing structured logs, no correlation ID propagation, missing metrics
+- Code quality: duplication, deep nesting (>3 levels), functions doing more than one thing
+- Test gaps: edge cases untested, error paths not covered
+
+**Minor (nice to have):**
+- Naming clarity, missing "why" comments, style inconsistencies
+
+**Distributed systems checks:**
+- Is this operation idempotent? Safe to retry?
+- Are multi-step operations wrapped in a transaction?
+- Are external calls protected with timeouts and circuit breakers?
+
+**Feedback format:**
+- BLOCKING: <issue> — <why it matters> — <how to fix>
+- IMPORTANT: <issue> — <suggestion>
+- SUGGESTION: <minor note>
+
+End with a clear verdict: Ready to merge / Needs changes (list blockers) / Needs discussion.
+
+myKaarma guardrails to verify: G1 (mkid cookie auth only), G2 (soft delete via is_valid=false), G3 (uuid in APIs not DB IDs), G8 (paginate lists default 25 max 100), G9 (no PII in logs), G10 (no var in TypeScript).
+
+{{args}}
+"""

@@ -1,0 +1,12 @@
+Put your GitHub Personal Access Token (PAT) here.
+
+Generate one at:
+https://github.com/settings/tokens
+
+Required scopes:
+- repo (full control of private repositories)
+- read:org (read org membership)
+
+For fine-grained tokens, grant access to the mykaarma organization repositories.
+
+This file should be saved as: ~/.claude/secrets/github-token

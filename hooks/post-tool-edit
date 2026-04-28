@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Post-tool quality check for Edit / Write tool calls
+#
+# Receives JSON via stdin:
+#   {"tool": "Edit"|"Write", "tool_input": {"file_path": "...", ...}, ...}
+#
+# This hook emits warnings to stderr but always exits 0 so it never blocks
+# the host CLI from completing a write. Warnings are surfaced in the tool
+# output panel.
+#
+# Configuration via environment variables:
+#   TODO_TICKET_PREFIX — if set (e.g. "PROJ"), warn on TODO comments that
+#                        don't reference a ticket like TODO(PROJ-123).
+#                        If unset, the TODO ticket check is skipped.
+#
+# NOTE: This script must be chmod +x. setup.sh handles this automatically
+# for all extensionless files in hooks/.
+
+set -uo pipefail
+
+# ---------------------------------------------------------------------------
+# Parse file path from JSON stdin
+# ---------------------------------------------------------------------------
+INPUT=$(cat)
+FILE_PATH=$(echo "$INPUT" | python3 -c \
+    "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" \
+    2>/dev/null || echo "")
+
+if [ -z "$FILE_PATH" ]; then
+    exit 0
+fi
+
+if [ ! -f "$FILE_PATH" ]; then
+    exit 0
+fi
+
+WARNINGS=()
+EXT="${FILE_PATH##*.}"
+
+# ---------------------------------------------------------------------------
+# Java file checks
+# ---------------------------------------------------------------------------
+if [ "$EXT" = "java" ]; then
+    if grep -qE 'System\.out\.print' "$FILE_PATH" 2>/dev/null; then
+        WARNINGS+=("QUALITY WARNING [${FILE_PATH}]: Found System.out.println — use a proper logger (SLF4J / log4j) instead.")
+    fi
+
+    if [ -n "${TODO_TICKET_PREFIX:-}" ]; then
+        if grep -qiE '//[[:space:]]*TODO' "$FILE_PATH" 2>/dev/null && \
+           ! grep -qiE "//[[:space:]]*TODO[[:space:]]*\(?[[:space:]]*${TODO_TICKET_PREFIX}-[0-9]+" "$FILE_PATH" 2>/dev/null; then
+            WARNINGS+=("QUALITY WARNING [${FILE_PATH}]: Found TODO comment without a ticket reference. Use // TODO(${TODO_TICKET_PREFIX}-XXXX): description to track work.")
+        fi
+    fi
+fi
+
+# ---------------------------------------------------------------------------
+# TypeScript / JavaScript file checks
+# ---------------------------------------------------------------------------
+if [ "$EXT" = "ts" ] || [ "$EXT" = "tsx" ] || [ "$EXT" = "js" ] || [ "$EXT" = "jsx" ]; then
+    if grep -qE '\bvar ' "$FILE_PATH" 2>/dev/null; then
+        WARNINGS+=("QUALITY WARNING [${FILE_PATH}]: Found 'var' declaration — use 'const' or 'let'.")
+    fi
+
+    IS_TEST=false
+    if echo "$FILE_PATH" | grep -qiE '\.(spec|test)\.(ts|tsx|js|jsx)$|/__tests__/|/test/'; then
+        IS_TEST=true
+    fi
+    if ! $IS_TEST && grep -qE 'console\.(log|warn|error|debug|info)' "$FILE_PATH" 2>/dev/null; then
+        WARNINGS+=("QUALITY WARNING [${FILE_PATH}]: Found console.log/warn/error in non-test file — use a structured logger instead.")
+    fi
+fi
+
+# ---------------------------------------------------------------------------
+# SQL file checks
+# ---------------------------------------------------------------------------
+if [ "$EXT" = "sql" ]; then
+    if grep -qE "(\+\s*'|\|\|\s*'|'\s*\+|'\s*\|\|)" "$FILE_PATH" 2>/dev/null; then
+        WARNINGS+=("QUALITY WARNING [${FILE_PATH}]: Possible string concatenation in SQL detected — use parameterized queries to prevent SQL injection (OWASP A03).")
+    fi
+fi
+
+for w in "${WARNINGS[@]}"; do
+    echo "$w" >&2
+done
+
+exit 0

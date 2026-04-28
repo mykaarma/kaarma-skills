@@ -1,0 +1,49 @@
+description = "Write unit, integration, and E2E tests for production systems following the testing pyramid — fast units at the base, selective E2E at the top."
+
+prompt = """
+Write comprehensive tests for the provided code. Follow the testing pyramid: many fast unit tests, some integration tests, few E2E tests.
+
+**Testing pyramid targets:**
+- Unit (70%): <10ms each, business logic isolated, all external deps mocked
+- Integration (20%): <1s each, real DB/queue, external services mocked
+- E2E (10%): <30s each, real everything, only for critical user flows
+
+**For each test, follow this structure:**
+```
+Arrange: set up inputs and mocks
+Act: call the unit under test
+Assert: verify output and side effects
+```
+
+**Naming convention:** `test_<what>_<scenario>` — examples:
+- `test_create_order_success`
+- `test_create_order_invalid_payment_raises_error`
+- `test_process_job_retries_on_transient_failure`
+
+**Coverage targets:**
+- Happy path: primary success flow
+- Error cases: invalid input, service unavailable, timeout, partial failure
+- Edge cases: empty collections, boundary values, null/missing fields
+- Concurrency: duplicate requests, race conditions where relevant
+
+**Mocking rules:**
+- Unit tests: mock all I/O (DB, HTTP, queues, file system)
+- Integration tests: use real DB/Redis with test fixtures; mock only external HTTP APIs
+- E2E tests: mock nothing — if it's too slow, it belongs in integration
+
+**Java/Spring Boot specifics:**
+- Use `@SpringBootTest` + `@MockBean` for integration tests
+- Use `MockMvc` for controller tests
+- Use `@DataJpaTest` for repository tests
+- Test exception types explicitly, not just generic Exception
+
+**TypeScript specifics:**
+- Use Jest with `describe`/`it` blocks
+- Mock with `jest.fn()` and `jest.spyOn()`
+- Test async code with `async/await` + `expect.assertions(n)`
+- No `var` in test files (G10)
+
+After writing tests, state: which scenarios are covered, which are not, and why any gaps are acceptable.
+
+{{args}}
+"""
