@@ -20,10 +20,18 @@ for writing plans, reviewing code, debugging, brainstorming, and shipping change
 
 ## Install
 
+### macOS / Linux
 ```bash
-git clone https://github.com/mykaarma/skills.git ~/skills
-cd ~/skills
+git clone https://github.com/mykaarma/kaarma-skills.git ~/kaarma-skills
+cd ~/kaarma-skills
 ./setup.sh
+```
+
+### Windows (PowerShell)
+```powershell
+git clone https://github.com/mykaarma/kaarma-skills.git $HOME/kaarma-skills
+cd $HOME/kaarma-skills
+.\setup.ps1
 ```
 
 The installer detects which CLIs are installed on your machine (`claude`, `codex`, `gemini`, `cursor`,
@@ -40,13 +48,22 @@ The installer detects which CLIs are installed on your machine (`claude`, `codex
 By default the installer creates symlinks so `git pull` automatically updates every CLI. Pass `--copy` if
 you'd rather have copies (recommended on Windows).
 
-### Flags
+### Flags (Bash)
 
-```
+```bash
 ./setup.sh              # symlink skills into every detected CLI
 ./setup.sh --copy       # copy instead of symlinking (Windows-friendly)
 ./setup.sh --dry-run    # show what would change without touching anything
-./setup.sh --help       # print this list
+./setup.sh --help       # print usage
+```
+
+### Flags (PowerShell)
+
+```powershell
+.\setup.ps1              # copy skills into every detected CLI
+.\setup.ps1 -Copy        # explicit copy mode (default on Windows)
+.\setup.ps1 -DryRun      # show what would change without touching anything
+.\setup.ps1 -Help        # print usage
 ```
 
 ## Configuring hooks
