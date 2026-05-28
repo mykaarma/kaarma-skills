@@ -11,7 +11,7 @@ set -euo pipefail
 #   codex         — OpenAI Codex CLI       → ~/.codex/{skills,AGENTS.md}
 #   gemini        — Google Gemini CLI      → ~/.gemini/{skills,commands,GEMINI.md}
 #   cursor        — Cursor                 → ~/.cursor/skills/
-#   antigravity   — Google Antigravity     → ~/.gemini/antigravity/skills/
+#   antigravity   — Google Antigravity IDE → ~/.gemini/antigravity/skills/
 #
 # Flags:
 #   --copy        copy instead of symlink (Windows-friendly, slower updates)
@@ -216,14 +216,25 @@ setup_cursor() {
     echo ""
 }
 
+has_antigravity() {
+    command -v antigravity >/dev/null 2>&1 && return 0
+    command -v agy >/dev/null 2>&1 && return 0
+    [ -d "$HOME/.gemini/antigravity" ] && return 0
+    [ -d "/Applications/Antigravity.app" ] && return 0
+    [ -d "/Applications/Google Antigravity.app" ] && return 0
+    [ -d "$HOME/Applications/Antigravity.app" ] && return 0
+    [ -d "$HOME/Applications/Google Antigravity.app" ] && return 0
+    return 1
+}
+
 setup_antigravity() {
     echo "--- Antigravity ---"
-    if ! command -v antigravity >/dev/null 2>&1; then
-        warn "antigravity not found — skipping. Download from https://antigravity.google"
+    if ! has_antigravity; then
+        warn "Antigravity IDE not found — skipping. Download from https://antigravity.google"
         echo ""
         return
     fi
-    info "antigravity found"
+    info "Antigravity IDE found"
 
     local skills_dir="$HOME/.gemini/antigravity/skills"
     local backup_dir="$HOME/.gemini/backup-$BACKUP_TS"

@@ -167,6 +167,16 @@ PY
 note "built-in command name collisions"
 
 # ---------------------------------------------------------------------------
+# setup.sh — Antigravity IDE config is detected even without a PATH launcher
+# ---------------------------------------------------------------------------
+setup_home="$(mktemp -d "${TMPDIR:-/tmp}/ai-smoke-home.XXXXXX")"
+mkdir -p "$setup_home/.gemini/antigravity"
+setup_output="$(HOME="$setup_home" PATH="/usr/bin:/bin" ./setup.sh --dry-run 2>&1)"
+rm -rf "$setup_home"
+printf '%s' "$setup_output" | search_tool -q '\.gemini/antigravity/skills' || fail "setup.sh did not detect Antigravity IDE config without PATH launcher"
+note "setup.sh Antigravity IDE config detection"
+
+# ---------------------------------------------------------------------------
 # post-tool-edit hook — Java logger + var checks fire on bad code
 # ---------------------------------------------------------------------------
 todo_dir="$(mktemp -d "${TMPDIR:-/tmp}/ai-smoke-java.XXXXXX")"
