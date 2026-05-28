@@ -167,6 +167,21 @@ PY
 note "built-in command name collisions"
 
 # ---------------------------------------------------------------------------
+# setup.sh — Antigravity IDE config paths are installed without a PATH launcher
+# ---------------------------------------------------------------------------
+setup_home="$(mktemp -d "${TMPDIR:-/tmp}/ai-smoke-home.XXXXXX")"
+mkdir -p "$setup_home/.gemini/antigravity-ide" "$setup_home/.gemini/config"
+setup_output="$(HOME="$setup_home" PATH="/usr/bin:/bin" ./setup.sh --dry-run 2>&1)"
+for expected_path in "$setup_home/.gemini/antigravity-ide/skills" "$setup_home/.gemini/config/skills"; do
+    printf '%s' "$setup_output" | grep -Fq "$expected_path" || fail "setup.sh did not install Antigravity IDE skills at $expected_path"
+done
+if printf '%s' "$setup_output" | grep -Fq "$setup_home/.gemini/antigravity/skills"; then
+    fail "setup.sh installed Antigravity IDE skills at deprecated path"
+fi
+rm -rf "$setup_home"
+note "setup.sh Antigravity IDE config paths"
+
+# ---------------------------------------------------------------------------
 # post-tool-edit hook — Java logger + var checks fire on bad code
 # ---------------------------------------------------------------------------
 todo_dir="$(mktemp -d "${TMPDIR:-/tmp}/ai-smoke-java.XXXXXX")"
