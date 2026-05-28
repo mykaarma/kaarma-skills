@@ -11,7 +11,7 @@ set -euo pipefail
 #   codex         — OpenAI Codex CLI       → ~/.codex/{skills,AGENTS.md}
 #   gemini        — Google Gemini CLI      → ~/.gemini/{skills,commands,GEMINI.md}
 #   cursor        — Cursor                 → ~/.cursor/skills/
-#   antigravity   — Google Antigravity IDE → ~/.gemini/antigravity/skills/
+#   antigravity   — Google Antigravity IDE → ~/.gemini/{antigravity-ide,config}/skills/
 #
 # Flags:
 #   --copy        copy instead of symlink (Windows-friendly, slower updates)
@@ -219,6 +219,8 @@ setup_cursor() {
 has_antigravity() {
     command -v antigravity >/dev/null 2>&1 && return 0
     command -v agy >/dev/null 2>&1 && return 0
+    [ -d "$HOME/.gemini/antigravity-ide" ] && return 0
+    [ -d "$HOME/.gemini/config" ] && return 0
     [ -d "$HOME/.gemini/antigravity" ] && return 0
     [ -d "/Applications/Antigravity.app" ] && return 0
     [ -d "/Applications/Google Antigravity.app" ] && return 0
@@ -236,12 +238,19 @@ setup_antigravity() {
     fi
     info "Antigravity IDE found"
 
-    local skills_dir="$HOME/.gemini/antigravity/skills"
-    local backup_dir="$HOME/.gemini/backup-$BACKUP_TS"
-    mkdir -p "$(dirname "$skills_dir")"
+    local skills_dirs=(
+        "$HOME/.gemini/antigravity-ide/skills"
+        "$HOME/.gemini/config/skills"
+    )
 
-    maybe_backup "$skills_dir" "$backup_dir"
-    install_path "$skills_dir" "$REPO_DIR/skills"
+    for skills_dir in "${skills_dirs[@]}"; do
+        local parent_dir backup_dir
+        parent_dir="$(dirname "$skills_dir")"
+        backup_dir="$parent_dir/backup-$BACKUP_TS"
+        mkdir -p "$parent_dir"
+        maybe_backup "$skills_dir" "$backup_dir"
+        install_path "$skills_dir" "$REPO_DIR/skills"
+    done
     echo ""
 }
 
