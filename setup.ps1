@@ -186,21 +186,86 @@ function Setup-Cursor {
     Write-Host ''
 }
 
+function Test-AntigravityIDE {
+    if (Get-Command antigravity -ErrorAction SilentlyContinue) { return $true }
+    if (Get-Command agy -ErrorAction SilentlyContinue) { return $true }
+
+    $paths = @(
+        (Join-Path $HOME '.gemini/antigravity-ide'),
+        (Join-Path $HOME '.gemini/config'),
+        (Join-Path $HOME '.gemini/antigravity')
+    )
+
+    if ($env:APPDATA) {
+        $paths += @(
+            (Join-Path $env:APPDATA 'Antigravity'),
+            (Join-Path $env:APPDATA 'Antigravity IDE')
+        )
+    }
+
+    if ($env:LOCALAPPDATA) {
+        $paths += @(
+            (Join-Path $env:LOCALAPPDATA 'Programs/Antigravity IDE'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/Antigravity'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/Google Antigravity'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/Antigravity IDE/Antigravity IDE.exe'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/Antigravity/Antigravity.exe'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/Google Antigravity/Antigravity.exe')
+        )
+    }
+
+    if ($env:USERPROFILE) {
+        $paths += @(
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Antigravity IDE'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Antigravity IDE/Antigravity IDE.exe'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Antigravity'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Antigravity/Antigravity.exe'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Google Antigravity'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Google Antigravity/Antigravity.exe')
+        )
+    }
+
+    $programRoots = @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }
+    foreach ($root in $programRoots) {
+        $paths += @(
+            (Join-Path $root 'Antigravity'),
+            (Join-Path $root 'Antigravity IDE'),
+            (Join-Path $root 'Google/Antigravity'),
+            (Join-Path $root 'Google Antigravity'),
+            (Join-Path $root 'Antigravity/Antigravity.exe'),
+            (Join-Path $root 'Antigravity IDE/Antigravity IDE.exe'),
+            (Join-Path $root 'Google/Antigravity/Antigravity.exe'),
+            (Join-Path $root 'Google Antigravity/Antigravity.exe')
+        )
+    }
+
+    foreach ($path in $paths) {
+        if ($path -and (Test-Path $path)) { return $true }
+    }
+
+    return $false
+}
+
 function Setup-Antigravity {
     Write-Host '--- Antigravity ---'
-    if (-not (Get-Command antigravity -ErrorAction SilentlyContinue)) {
-        Write-Warn 'antigravity not found - skipping.'
+    if (-not (Test-AntigravityIDE)) {
+        Write-Warn 'Antigravity IDE not found - skipping. Download from https://antigravity.google'
         Write-Host ''
         return
     }
-    Write-Info 'antigravity found'
-    $skills_dir = Join-Path $HOME '.gemini/antigravity/skills'
-    $backup_dir = Join-Path $HOME ".gemini/backup-$BACKUP_TS"
-    $parent_dir = Split-Path $skills_dir -Parent
-    if (-not (Test-Path $parent_dir)) { $null = New-Item -ItemType Directory -Path $parent_dir -Force }
-    Maybe-Backup $skills_dir $backup_dir
+    Write-Info 'Antigravity IDE found'
     $s = Join-Path $REPO_DIR 'skills'
-    Install-Path $skills_dir $s
+    $skills_dirs = @(
+        (Join-Path $HOME '.gemini/antigravity-ide/skills'),
+        (Join-Path $HOME '.gemini/config/skills')
+    )
+    foreach ($skills_dir in $skills_dirs) {
+        $backup_dir = Join-Path (Split-Path $skills_dir -Parent) "backup-$BACKUP_TS"
+        $parent_dir = Split-Path $skills_dir -Parent
+        if (-not (Test-Path $parent_dir)) { $null = New-Item -ItemType Directory -Path $parent_dir -Force }
+        Maybe-Backup $skills_dir $backup_dir
+        Install-Path $skills_dir $s
+    }
     Write-Host ''
 }
 
