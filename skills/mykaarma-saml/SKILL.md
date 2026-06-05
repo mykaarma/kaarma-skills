@@ -71,7 +71,8 @@ Why: the myKaarma IdP signs the outer response, and requiring a separately signe
 Required environment:
 - `BASE_URL`: canonical public URL for the deployed app, no trailing slash.
 - `SESSION_SECRET`: high-entropy session signing secret.
-- `SP_PRIVATE_KEY`: private key matching the SP public certificate.
+- `SP_PUBLIC_CERT` or `certs/sp.crt`: public SP X.509 certificate configured as `sp.x509cert` so generated metadata includes `<X509Certificate>`.
+- `SP_PRIVATE_KEY`: private key matching the SP public certificate, configured as `sp.privateKey`.
 
 For Flask-only variants:
 - `SAML_SP_ENTITY_ID`: usually `${BASE_URL}/saml/metadata`.
@@ -95,6 +96,7 @@ For Flask:
 - Avoid RelayState loops: never redirect back to `/saml/login`.
 
 In both:
+- Configure both the SP public certificate and private key when signing AuthnRequests. `python3-saml` needs the public certificate in `sp.x509cert` and the private key in `sp.privateKey`.
 - Store only the minimal session payload needed: NameID, session index, attributes, authorization flags.
 - Extract `UserUUID`, `Email`, `UserName`, and optionally `DealerUUIDs` from SAML attributes.
 - Deny unauthorized users during ACS/session creation, not only after redirecting to the UI.
@@ -103,7 +105,7 @@ In both:
 ## Registration Flow
 
 1. Deploy or run with the final public `BASE_URL`.
-2. Confirm `/saml/metadata` returns valid XML and entity ID/ACS/SLS URLs match the public domain exactly.
+2. Confirm `/saml/metadata` returns valid XML, entity ID/ACS/SLS URLs match the public domain exactly, and the SP `<X509Certificate>` is present.
 3. Save the SP metadata XML for that environment.
 4. Email the myKaarma SSO team at `sso@mykaarma.com` with the SP metadata XML file attached. In the email body, also list the entity ID, ACS URL, SLS URL, environment, and technical contact.
 5. Wait for SSO team confirmation before testing real login.
@@ -129,6 +131,7 @@ In both:
 | Fetching IdP metadata live | Pin/configure IdP cert and URLs |
 | Requiring signed assertions | Require signed response messages; set `wantAssertionsSigned: False` unless SSO confirms otherwise |
 | Requesting default AuthnContext | Set `requestedAuthnContext: False` |
+| Configuring only the SP private key | Configure both `sp.x509cert` / `certs/sp.crt` and `sp.privateKey` |
 | Creating a session before authorization | Deny unauthorized users in ACS |
 | Redirecting RelayState back to login | Sanitize return targets and fall back to a protected landing page |
 | Committing SP private key or session secret | Use env vars or secret manager |
