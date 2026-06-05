@@ -21,9 +21,18 @@ Do not use this skill when:
 - The user asks only for SAML setup. Use `mykaarma-saml`.
 - The task is a production deployment. Use the relevant deployment skill.
 
+## Required Preflight
+
+Hard stop before app code: if the user says they want to build an app, tool, game, demo, prototype, or similar, first locate a repo-local SPEC or Plan file such as `SPEC.md`, `PLAN.md`, `spec.md`, `plan.md`, or a user-provided equivalent. Chat context, an off-repo document, or verbal requirements do not satisfy this prerequisite until captured in a repo-local file.
+
+If no SPEC or Plan file is present:
+- Stop and tell the user the app build cannot start yet.
+- Ask the user to provide the SPEC/Plan file or allow you to create one from their requirements.
+- Do not scaffold files, write app code, install dependencies, or start a dev server until that file exists.
+
 ## Core Rules
 
-1. Define before building: problem, user stories, success criteria, data boundaries, and owner.
+1. Build from the SPEC or Plan file and keep implementation decisions traceable to it.
 2. Develop locally from a git repo on `localhost`; avoid cloud IDE/runtime shortcuts unless explicitly approved.
 3. Use sandbox, fixture, or synthetic data during development. Never use real customer or production data locally.
 4. Serve the frontend from the backend. Do not ask the user to open `index.html` directly.
@@ -124,6 +133,7 @@ def health() -> dict[str, str]:
 ## Verification
 
 Before claiming done:
+- Confirm the repo-local SPEC or Plan file exists and the implementation matches its success criteria.
 - Run the relevant tests, usually `python -m pytest`.
 - Start the backend server.
 - Verify `/` returns the frontend through the backend.
@@ -135,6 +145,7 @@ Before claiming done:
 
 | Mistake | Correct Pattern |
 |---|---|
+| Building from chat context only | Stop until a repo-local SPEC or Plan file exists |
 | Opening `index.html` directly | Serve it from Flask/FastAPI and provide a localhost URL |
 | Hardcoding API hosts in frontend code | Use relative paths like `fetch("/api/...")` |
 | Putting secrets in JS, HTML, or committed config | Read secrets from backend env vars |
