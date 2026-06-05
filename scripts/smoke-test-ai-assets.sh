@@ -182,6 +182,27 @@ rm -rf "$setup_home"
 note "setup.sh Antigravity IDE config paths"
 
 # ---------------------------------------------------------------------------
+# setup.ps1 — Antigravity IDE config paths are installed without a PATH launcher
+# ---------------------------------------------------------------------------
+setup_ps_home="$(mktemp -d "${TMPDIR:-/tmp}/ai-smoke-ps-home.XXXXXX")"
+mkdir -p "$setup_ps_home/.gemini/antigravity-ide" "$setup_ps_home/.gemini/config"
+if command -v pwsh >/dev/null 2>&1; then
+    setup_ps_output="$(HOME="$setup_ps_home" pwsh -NoLogo -NoProfile -NonInteractive -File ./setup.ps1 -DryRun 2>&1)"
+    for expected_path in "$setup_ps_home/.gemini/antigravity-ide/skills" "$setup_ps_home/.gemini/config/skills"; do
+        printf '%s' "$setup_ps_output" | grep -Fq "$expected_path" || fail "setup.ps1 did not install Antigravity IDE skills at $expected_path"
+    done
+else
+    grep -Fq 'Get-Command agy' setup.ps1 || fail "setup.ps1 does not detect the agy command"
+    grep -Fq ".gemini/antigravity-ide/skills" setup.ps1 || fail "setup.ps1 missing Antigravity IDE skills path"
+    grep -Fq ".gemini/config/skills" setup.ps1 || fail "setup.ps1 missing Antigravity config skills path"
+fi
+if grep -Fq ".gemini/antigravity/skills" setup.ps1; then
+    fail "setup.ps1 installed Antigravity IDE skills at deprecated path"
+fi
+rm -rf "$setup_ps_home"
+note "setup.ps1 Antigravity IDE config paths"
+
+# ---------------------------------------------------------------------------
 # post-tool-edit hook — Java logger + var checks fire on bad code
 # ---------------------------------------------------------------------------
 todo_dir="$(mktemp -d "${TMPDIR:-/tmp}/ai-smoke-java.XXXXXX")"

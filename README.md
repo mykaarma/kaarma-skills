@@ -43,7 +43,7 @@ The installer detects which CLIs are installed on your machine (`claude`, `codex
 | Codex CLI | `~/.codex/{skills,AGENTS.md}` |
 | Gemini CLI | `~/.gemini/{skills,commands,GEMINI.md}` |
 | Cursor | `~/.cursor/skills/` |
-| Antigravity | `~/.gemini/antigravity/skills/` |
+| Antigravity | `~/.gemini/{antigravity-ide,config}/skills/` |
 
 By default the installer creates symlinks so `git pull` automatically updates every CLI. Pass `--copy` if
 you'd rather have copies (recommended on Windows).
