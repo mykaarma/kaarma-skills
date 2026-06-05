@@ -1,0 +1,42 @@
+# myKaarma IdP Certificate
+
+Source: https://docs.mykaarma.com/ui-integration
+
+This is the public myKaarma IdP certificate embedded in the IdP metadata. It is safe to commit as public certificate material. Do not confuse this with the SP private key, which must stay in a secret manager or environment variable.
+
+Validated with `openssl x509`:
+- Valid from: `Jun 12 12:46:26 2017 GMT`
+- Valid until: `Jun 12 12:46:26 2027 GMT`
+- SHA-256 fingerprint: `12:AC:D6:81:B5:99:6B:C4:C3:45:46:3A:04:59:10:BC:85:66:9F:66:8A:C4:ED:FC:FC:57:DF:05:E4:CF:36:A7`
+
+Write this as `certs/idp.crt` when a Python SAML app reads the IdP certificate from disk.
+
+```text
+-----BEGIN CERTIFICATE-----
+MIIElTCCA32gAwIBAgIJAJoWKsFrnIAvMA0GCSqGSIb3DQEBBQUAMIGNMQswCQYD
+VQQGEwJVUzELMAkGA1UECBMCQ0ExCzAJBgNVBAcTAkxBMREwDwYDVQQKEwhteUth
+YXJtYTETMBEGA1UECxMKS2FhcnlhIExMQzERMA8GA1UEAxMIbXlLYWFybWExKTAn
+BgkqhkiG9w0BCQEWGm1vdWxpLmthdGh1bGFAbXlrYWFybWEuY29tMB4XDTE3MDYx
+MjEyNDYyNloXDTI3MDYxMjEyNDYyNlowgY0xCzAJBgNVBAYTAlVTMQswCQYDVQQI
+EwJDQTELMAkGA1UEBxMCTEExETAPBgNVBAoTCG15S2Fhcm1hMRMwEQYDVQQLEwpL
+YWFyeWEgTExDMREwDwYDVQQDEwhteUthYXJtYTEpMCcGCSqGSIb3DQEJARYabW91
+bGkua2F0aHVsYUBteWthYXJtYS5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
+ggEKAoIBAQDSyCO5sBmJXFBMO6+szzin6SPXN4prqD7xU/G0rzAiKgXVPJ0iFaWf
+W95maO0NypRwwxeELabVqTnPPt8PqDs56vfH1LpshZ2mQLmZguIrCls6GDB2+gUs
+zYdDV35ASoOe/9dGqEGeJvoN1fas22tEh55Gs2P3I2ZYRSMkkQrzbtrQTxdx0gpe
+W39SZjBK0E02vh3mU7HToFB5MDRxaURHbHASBBqdscAMK/orjx+PWL5PqmKUX5As
+x/sUp4f13I5+dw0PnYjG5rHPfl+J+1xb5GEBdp82V34kzzX8t20htEHDlzwCcw+m
+qpylozedZCQUZbp7N5nlPpyR8wCCphnNAgMBAAGjgfUwgfIwHQYDVR0OBBYEFBcB
+VdGTJNJmywjKdvTgCVIs+y48MIHCBgNVHSMEgbowgbeAFBcBVdGTJNJmywjKdvTg
+CVIs+y48oYGTpIGQMIGNMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExCzAJBgNV
+BAcTAkxBMREwDwYDVQQKEwhteUthYXJtYTETMBEGA1UECxMKS2FhcnlhIExMQzER
+MA8GA1UEAxMIbXlLYWFybWExKTAnBgkqhkiG9w0BCQEWGm1vdWxpLmthdGh1bGFA
+bXlrYWFybWEuY29tggkAmhYqwWucgC8wDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0B
+AQUFAAOCAQEAYWE7uBrAXrYMhY/PtkmDmGDOjt/327J8FTZf/TzPFwS98TDPlvrn
+12iZsQwwPc4PF5kLFMbtZZqGARz1RMoarlF/oMDJAmRROxDaLtxw1pT/eNS2Whuc
+5hVmUPFQybtvaht15pdrjFTO98ygE8foYeSGNf5CuppUGw16lJIJTTc3JjyWu5Ji
+CdEKNxvdJNRVVzg4wm9WKdsYaP7S75tRiyd5WyZXgLA5xm6APwCmu1yzS73sVVtm
+zbzfIMyf1+1Q1xK9q/jmfWF/mIurj+5/BuqY45Az+seXBiNSS7X3xbHBEtl46TeU
+Wb0rHPZz5MKfp9JV2DFDOEBxjlgI/1ocOg==
+-----END CERTIFICATE-----
+```
