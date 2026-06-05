@@ -214,6 +214,17 @@ function Test-AntigravityIDE {
         )
     }
 
+    if ($env:USERPROFILE) {
+        $paths += @(
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Antigravity IDE'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Antigravity IDE/Antigravity IDE.exe'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Antigravity'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Antigravity/Antigravity.exe'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Google Antigravity'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Google Antigravity/Antigravity.exe')
+        )
+    }
+
     $programRoots = @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }
     foreach ($root in $programRoots) {
         $paths += @(

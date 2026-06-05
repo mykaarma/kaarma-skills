@@ -193,6 +193,7 @@ if command -v pwsh >/dev/null 2>&1; then
     done
 else
     grep -Fq 'Get-Command agy' setup.ps1 || fail "setup.ps1 does not detect the agy command"
+    grep -Fq "AppData/Local/Programs/Antigravity IDE/Antigravity IDE.exe" setup.ps1 || fail "setup.ps1 missing Antigravity IDE user-profile install path"
     grep -Fq ".gemini/antigravity-ide/skills" setup.ps1 || fail "setup.ps1 missing Antigravity IDE skills path"
     grep -Fq ".gemini/config/skills" setup.ps1 || fail "setup.ps1 missing Antigravity config skills path"
 fi

@@ -45,6 +45,9 @@ The installer detects which CLIs are installed on your machine (`claude`, `codex
 | Cursor | `~/.cursor/skills/` |
 | Antigravity | `~/.gemini/{antigravity-ide,config}/skills/` |
 
+On Windows, Antigravity is also detected from the usual IDE install location:
+`%LOCALAPPDATA%\Programs\Antigravity IDE\Antigravity IDE.exe`.
+
 By default the installer creates symlinks so `git pull` automatically updates every CLI. Pass `--copy` if
 you'd rather have copies (recommended on Windows).
 
