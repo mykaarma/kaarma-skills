@@ -39,8 +39,9 @@ If no SPEC or Plan file is present:
 5. Keep secrets out of source. Use environment variables or ignored `.env`; commit only `.env.example`.
 6. Use vanilla JS unless the repo or user requires a frontend framework.
 7. Own AI-generated code. Review auth, authorization, data access, logging, deletion, and external calls carefully.
-8. Document run, test, and handoff notes as you build.
-9. Start the local server and verify the app in a browser before claiming done.
+8. Log every backend outbound response from a third-party service/API for debugging, with redaction and truncation for any response body.
+9. Document run, test, and handoff notes as you build.
+10. Start the local server and verify the app in a browser before claiming done.
 
 ## Default Architecture
 
@@ -85,6 +86,8 @@ Choose Flask when the app is a small local tool with simple routes and static as
 - Keep secrets and privileged external API calls server-side.
 - Keep route handlers thin; move business logic, external calls, and persistence into services/modules as the app grows.
 - Keep frontend API calls in one small JS service/module instead of scattering `fetch` across UI event handlers.
+- For every backend outbound call to a third-party service/API, log the upstream service or URL, status, elapsed time, request/correlation ID, and sanitized/truncated response body or summary.
+- Do not require response logging for frontend fetches or internal backend routes unless it helps diagnose a specific issue. Never log auth cookies, tokens, credentials, raw secrets, or sensitive customer data.
 - Use `const` or `let` in JavaScript; never use `var`.
 - If using in-memory state, document single-process limits and avoid multiple workers unless state is externalized.
 - For local auth bypasses, require an explicit env flag and label them local-dev only.
@@ -151,6 +154,7 @@ Before claiming done:
 | Putting secrets in JS, HTML, or committed config | Read secrets from backend env vars |
 | Adding React/Vite for a small app without a reason | Use vanilla JS unless needed |
 | Using real customer data in local development | Use sandbox, fixture, or synthetic data |
+| Making backend outbound API calls without response logs | Log upstream service/URL, status, elapsed time, request ID, and a redacted/truncated response summary |
 | Putting business logic directly in routes after the app grows | Move it into service modules |
 | Running multiple workers with in-memory jobs/cache | Use one worker or externalize state |
 | Treating local success as production readiness | Add review, staging/UAT, support, and ownership gates |
