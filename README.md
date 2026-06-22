@@ -136,14 +136,17 @@ Use the building-apps skill.
 I want to build a local app. Before writing code:
 1. Stop if there is no repo-local SPEC.md or PLAN.md.
 2. If the SPEC/PLAN is missing, create it from my requirements and wait for my approval.
-3. Use Python for the backend unless an existing repo stack or the approved SPEC explicitly requires another backend.
-4. Use vanilla HTML/CSS/JavaScript for the frontend unless the approved SPEC explicitly requires a framework.
-5. Serve the frontend from the Python backend; do not ask me to open index.html directly.
-6. Keep third-party API calls server-side and log backend outbound API responses with redaction/truncation.
+3. Make sure the SPEC/PLAN has milestones, each with acceptance criteria.
+4. Build only the first milestone first; stop after it is working, verified, and ready for review.
+5. Use Python for the backend unless an existing repo stack or the approved SPEC explicitly requires another backend.
+6. Use vanilla HTML/CSS/JavaScript for the frontend unless the approved SPEC explicitly requires a framework.
+7. Serve the frontend from the Python backend; do not ask me to open index.html directly.
+8. Keep third-party API calls server-side and log backend outbound API responses with redaction/truncation.
 ```
 
-This prompt is intentionally explicit: without it, agents may choose Java, Node.js, or a frontend build stack even
-when the `building-apps` skill recommends a Python backend and vanilla JavaScript frontend for greenfield local apps.
+This prompt is intentionally explicit: it forces a milestone-based SPEC/PLAN, keeps the first build scoped to
+milestone one, and prevents agents from choosing Java, Node.js, or a frontend build stack when the
+`building-apps` skill recommends a Python backend and vanilla JavaScript frontend for greenfield local apps.
 
 ## Configuring hooks
 

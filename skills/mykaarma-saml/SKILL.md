@@ -70,7 +70,7 @@ Why: the myKaarma IdP signs the outer response, and requiring a separately signe
 
 Required environment:
 - `BASE_URL`: canonical public URL for the deployed app, no trailing slash.
-- `SP_ENTITY_ID` or `SAML_SP_ENTITY_ID`: stable app-specific SP entity ID, using the agreed reverse-domain/app-name form such as `TLD.ORG.APPNAME`. Do not use `localhost`, `127.0.0.1`, ports, or request-derived URLs.
+- `SP_ENTITY_ID` or `SAML_SP_ENTITY_ID`: stable app-specific SP entity ID in app-ID form. Use `local.abc.def` for local development and reserve `com.abc.def` for UAT/shared registration. Replace `abc.def` with the app-specific identifier. Do not use `localhost`, `127.0.0.1`, ports, or request-derived URLs.
 - `SESSION_SECRET`: high-entropy session signing secret.
 - `SP_PUBLIC_CERT` or `certs/sp.crt`: public SP X.509 certificate configured as `sp.x509cert` so generated metadata includes `<X509Certificate>`.
 - `SP_PRIVATE_KEY`: private key matching the SP public certificate, configured as `sp.privateKey`.
@@ -98,7 +98,7 @@ For Flask:
 - Avoid RelayState loops: never redirect back to `/saml/login`.
 
 In both:
-- Keep SP entity ID stable per app/environment so multiple developers can reuse the same local default port, such as `127.0.0.1:5000`, without creating identical SP identities.
+- Keep SP entity ID stable per app/environment so multiple developers can reuse the same local default port, such as `127.0.0.1:5000`, without creating identical SP identities. Use the `local.*` entity ID for local metadata and the `com.*` entity ID only for UAT/shared environments.
 - Configure both the SP public certificate and private key when signing AuthnRequests. `python3-saml` needs the public certificate in `sp.x509cert` and the private key in `sp.privateKey`.
 - Store only the minimal session payload needed: NameID, session index, attributes, authorization flags.
 - Extract `UserUUID`, `Email`, `UserName`, and optionally `DealerUUIDs` from SAML attributes.
@@ -108,7 +108,7 @@ In both:
 ## Registration Flow
 
 1. Deploy or run with the final public `BASE_URL`.
-2. Confirm `/saml/metadata` returns valid XML, entity ID equals the stable app-specific ID, ACS/SLS URLs match the public domain exactly, and the SP `<X509Certificate>` is present.
+2. Confirm `/saml/metadata` returns valid XML, entity ID equals the environment-specific app ID (`local.abc.def` locally, `com.abc.def` for UAT), ACS/SLS URLs match the public domain exactly, and the SP `<X509Certificate>` is present.
 3. Save the SP metadata XML for that environment.
 4. Email the myKaarma SSO team at `sso@mykaarma.com` with the SP metadata XML file attached. In the email body, also list the entity ID, ACS URL, SLS URL, environment, and technical contact.
 5. Wait for SSO team confirmation before testing real login.
@@ -130,7 +130,7 @@ In both:
 
 | Mistake | Correct Pattern |
 |---|---|
-| Metadata entity ID uses localhost, `127.0.0.1:5000`, a port, or an old domain | Use a stable app-specific entity ID such as `TLD.ORG.APPNAME`; use `BASE_URL` only for ACS/SLS URLs |
+| Metadata entity ID uses localhost, `127.0.0.1:5000`, a port, an old domain, or the UAT `com.*` ID for local work | Use `local.abc.def` locally and `com.abc.def` for UAT; use `BASE_URL` only for ACS/SLS URLs |
 | Fetching IdP metadata live | Pin/configure IdP cert and URLs |
 | Requiring signed assertions | Require signed response messages; set `wantAssertionsSigned: False` unless SSO confirms otherwise |
 | Requesting default AuthnContext | Set `requestedAuthnContext: False` |

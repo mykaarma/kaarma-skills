@@ -25,23 +25,26 @@ Do not use this skill when:
 
 Hard stop before app code: if the user says they want to build an app, tool, game, demo, prototype, or similar, first locate a repo-local SPEC or Plan file such as `SPEC.md`, `PLAN.md`, `spec.md`, `plan.md`, or a user-provided equivalent. Chat context, an off-repo document, or verbal requirements do not satisfy this prerequisite until captured in a repo-local file.
 
-If no SPEC or Plan file is present:
+The SPEC or Plan must include milestones, and each milestone must include acceptance criteria. A final-state feature list without milestones is not enough.
+
+If no SPEC or Plan file is present, or if the file does not define milestones:
 - Stop and tell the user the app build cannot start yet.
-- Ask the user to provide the SPEC/Plan file or allow you to create one from their requirements.
-- Do not scaffold files, write app code, install dependencies, or start a dev server until that file exists.
+- Ask the user to provide the SPEC/Plan file, approve creating one from their requirements, or approve updating the existing file with milestones.
+- Do not scaffold files, write app code, install dependencies, or start a dev server until that file exists with milestones.
 
 ## Core Rules
 
 1. Build from the SPEC or Plan file and keep implementation decisions traceable to it.
-2. Develop locally from a git repo on `localhost`; avoid cloud IDE/runtime shortcuts unless explicitly approved.
-3. Use sandbox, fixture, or synthetic data during development. Never use real customer or production data locally.
-4. Serve the frontend from the backend. Do not ask the user to open `index.html` directly.
-5. Keep secrets out of source. Use environment variables or ignored `.env`; commit only `.env.example`.
-6. Use vanilla JS unless the repo or user requires a frontend framework.
-7. Own AI-generated code. Review auth, authorization, data access, logging, deletion, and external calls carefully.
-8. Log every backend outbound response from a third-party service/API for debugging, with redaction and truncation for any response body.
-9. Document run, test, and handoff notes as you build.
-10. Start the local server and verify the app in a browser before claiming done.
+2. Build milestone-by-milestone. Implement milestone one first, verify it against its acceptance criteria, and stop for review unless the user explicitly approves continuing.
+3. Develop locally from a git repo on `localhost`; avoid cloud IDE/runtime shortcuts unless explicitly approved.
+4. Use sandbox, fixture, or synthetic data during development. Never use real customer or production data locally.
+5. Serve the frontend from the backend. Do not ask the user to open `index.html` directly.
+6. Keep secrets out of source. Use environment variables or ignored `.env`; commit only `.env.example`.
+7. Use vanilla JS unless the repo or user requires a frontend framework.
+8. Own AI-generated code. Review auth, authorization, data access, logging, deletion, and external calls carefully.
+9. Log every backend outbound response from a third-party service/API for debugging, with redaction and truncation for any response body.
+10. Document run, test, and handoff notes as you build.
+11. Start the local server and verify the app in a browser before claiming done.
 
 ## Default Architecture
 
@@ -136,7 +139,8 @@ def health() -> dict[str, str]:
 ## Verification
 
 Before claiming done:
-- Confirm the repo-local SPEC or Plan file exists and the implementation matches its success criteria.
+- Confirm the repo-local SPEC or Plan file exists, includes milestones, and the implementation matches the current milestone's acceptance criteria.
+- Confirm the build is scoped to the current milestone, especially milestone one unless the user approved continuing.
 - Run the relevant tests, usually `python -m pytest`.
 - Start the backend server.
 - Verify `/` returns the frontend through the backend.
@@ -149,6 +153,8 @@ Before claiming done:
 | Mistake | Correct Pattern |
 |---|---|
 | Building from chat context only | Stop until a repo-local SPEC or Plan file exists |
+| Building from a SPEC/Plan with no milestones | Stop and add milestones with acceptance criteria before app code |
+| Building the whole app at once | Build milestone one first, verify it, and stop for review |
 | Opening `index.html` directly | Serve it from Flask/FastAPI and provide a localhost URL |
 | Hardcoding API hosts in frontend code | Use relative paths like `fetch("/api/...")` |
 | Putting secrets in JS, HTML, or committed config | Read secrets from backend env vars |
