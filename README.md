@@ -145,7 +145,7 @@ I want to build a local app. Before writing code:
 4. Build only the first milestone first; stop after it is working, verified, and ready for review.
 5. Use Python for the backend unless an existing repo stack or the approved SPEC explicitly requires another backend.
 6. Use vanilla HTML/CSS/JavaScript for the frontend unless the approved SPEC explicitly requires a framework.
-7. Serve the frontend from the Python backend; do not ask me to open index.html directly.
+7. Serve the frontend from the selected backend; do not ask me to open index.html directly.
 8. Keep third-party API calls server-side and log backend outbound API responses with redaction/truncation.
 ```
 
