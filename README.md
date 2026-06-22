@@ -18,6 +18,55 @@ for writing plans, reviewing code, debugging, brainstorming, and shipping change
 | `hooks/` | Shell-script safety hooks (force-push block, protected-branch block, etc.) |
 | `scripts/` | Smoke tests and maintenance scripts |
 
+## Prerequisites
+
+Before installing this repo, set up the basic development tools for your operating system.
+
+### GitHub
+
+Create a GitHub account and make sure you can access the repositories you need. For practice or onboarding,
+create a private `hello-world` repository and verify you can clone it locally.
+
+### macOS
+
+Install Apple's command-line tools, Homebrew, Git, Python 3, and Antigravity:
+
+```bash
+xcode-select --install
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install git
+brew install python3
+git --version
+python3 --version
+```
+
+For Python projects, prefer a virtual environment per project:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Download Antigravity from [antigravity.google](https://antigravity.google/product/antigravity-ide), then sign in
+and connect it to GitHub when prompted. To work from Antigravity, use **Clone repository**, choose **Clone from
+GitHub**, complete the GitHub authorization flow, and select the repository to clone.
+
+### Windows
+
+Install Git, Python 3, and Antigravity:
+
+1. Install Git for Windows from [git-scm.com](https://git-scm.com/download/win), then verify in PowerShell:
+   ```powershell
+   git --version
+   ```
+2. Install Python 3.13 from the Microsoft Store or [python.org](https://www.python.org/downloads/windows/), then verify:
+   ```powershell
+   python --version
+   ```
+3. Download Antigravity from [antigravity.google](https://antigravity.google/product/antigravity-ide), then sign in
+   and connect it to GitHub when prompted. To work from Antigravity, use **Clone repository**, choose **Clone from
+   GitHub**, complete the GitHub authorization flow, and select the repository to clone.
+
 ## Install
 
 ### macOS / Linux
@@ -68,6 +117,33 @@ you'd rather have copies (recommended on Windows).
 .\setup.ps1 -DryRun      # show what would change without touching anything
 .\setup.ps1 -Help        # print usage
 ```
+
+If PowerShell blocks `setup.ps1` with "running scripts is disabled on this system", run it with a
+process-scoped policy bypass instead of changing machine-wide settings:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+```
+
+## Starting Local App Builds
+
+When asking an AI coding agent to build a new local app, start with this prompt so the `building-apps` skill is
+loaded and the default stack stays aligned:
+
+```text
+Use the building-apps skill.
+
+I want to build a local app. Before writing code:
+1. Stop if there is no repo-local SPEC.md or PLAN.md.
+2. If the SPEC/PLAN is missing, create it from my requirements and wait for my approval.
+3. Use Python for the backend unless an existing repo stack or the approved SPEC explicitly requires another backend.
+4. Use vanilla HTML/CSS/JavaScript for the frontend unless the approved SPEC explicitly requires a framework.
+5. Serve the frontend from the Python backend; do not ask me to open index.html directly.
+6. Keep third-party API calls server-side and log backend outbound API responses with redaction/truncation.
+```
+
+This prompt is intentionally explicit: without it, agents may choose Java, Node.js, or a frontend build stack even
+when the `building-apps` skill recommends a Python backend and vanilla JavaScript frontend for greenfield local apps.
 
 ## Configuring hooks
 
