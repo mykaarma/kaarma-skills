@@ -167,6 +167,41 @@ PY
 note "built-in command name collisions"
 
 # ---------------------------------------------------------------------------
+# setup.sh / setup.ps1 — Claude Desktop and IDE extensions install ~/.claude
+# ---------------------------------------------------------------------------
+claude_surface_cases=(
+    "Library/Application Support/Claude"
+    ".vscode/extensions/anthropic.claude-code-1.0.0"
+    ".antigravity-ide/extensions/anthropic.claude-code-1.0.0"
+)
+
+for surface_path in "${claude_surface_cases[@]}"; do
+    setup_home="$(mktemp -d "${TMPDIR:-/tmp}/ai-smoke-claude-home.XXXXXX")"
+    mkdir -p "$setup_home/$surface_path"
+    setup_output="$(HOME="$setup_home" PATH="/usr/bin:/bin" ./setup.sh --dry-run 2>&1)"
+    printf '%s' "$setup_output" | grep -Fq "$setup_home/.claude/skills" || fail "setup.sh did not install Claude skills for $surface_path"
+    rm -rf "$setup_home"
+done
+note "setup.sh Claude Desktop and IDE extension paths"
+
+setup_ps_claude_home="$(mktemp -d "${TMPDIR:-/tmp}/ai-smoke-ps-claude-home.XXXXXX")"
+if command -v pwsh >/dev/null 2>&1; then
+    for surface_path in "${claude_surface_cases[@]}"; do
+        rm -rf "$setup_ps_claude_home"
+        mkdir -p "$setup_ps_claude_home/$surface_path"
+        setup_ps_output="$(HOME="$setup_ps_claude_home" pwsh -NoLogo -NoProfile -NonInteractive -File ./setup.ps1 -DryRun 2>&1)"
+        printf '%s' "$setup_ps_output" | grep -Fq "$setup_ps_claude_home/.claude/skills" || fail "setup.ps1 did not install Claude skills for $surface_path"
+    done
+else
+    grep -Fq 'function Test-ClaudeSurface' setup.ps1 || fail "setup.ps1 missing Claude surface detection"
+    grep -Fq '.vscode/extensions' setup.ps1 || fail "setup.ps1 missing VS Code Claude extension detection"
+    grep -Fq '.antigravity-ide/extensions' setup.ps1 || fail "setup.ps1 missing Antigravity Claude extension detection"
+    grep -Fq 'Library/Application Support/Claude' setup.ps1 || fail "setup.ps1 missing Claude Desktop detection"
+fi
+rm -rf "$setup_ps_claude_home"
+note "setup.ps1 Claude Desktop and IDE extension paths"
+
+# ---------------------------------------------------------------------------
 # setup.sh — Antigravity IDE config paths are installed without a PATH launcher
 # ---------------------------------------------------------------------------
 setup_home="$(mktemp -d "${TMPDIR:-/tmp}/ai-smoke-home.XXXXXX")"

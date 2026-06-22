@@ -1,10 +1,11 @@
 # kaarma-skills
 
-A curated set of AI agent skills, slash commands, and safety hooks that work across multiple coding CLIs:
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Codex CLI](https://github.com/openai/codex),
+A curated set of AI agent skills, slash commands, and safety hooks that work across multiple coding CLIs,
+desktop apps, and editor surfaces: [Claude Code](https://docs.anthropic.com/en/docs/claude-code),
+Claude Desktop, Claude extensions for VS Code and Antigravity, [Codex CLI](https://github.com/openai/codex),
 [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Cursor](https://cursor.com), and Google Antigravity.
 
-The same content drives all five tools — install once and your AI assistants share a consistent set of patterns
+The same content drives supported tools — install once and your AI assistants share a consistent set of patterns
 for writing plans, reviewing code, debugging, brainstorming, and shipping changes.
 
 ## What's inside
@@ -88,16 +89,19 @@ cd $HOME/kaarma-skills
 .\setup.ps1
 ```
 
-The installer detects which CLIs are installed on your machine (`claude`, `codex`, `gemini`, `cursor`,
-`antigravity`) and links the appropriate folders into each one's config directory:
+The installer detects which CLIs, apps, and editor extensions are installed on your machine (`claude`,
+Claude Desktop, Claude extensions for VS Code or Antigravity, `codex`, `gemini`, `cursor`, `antigravity`)
+and links the appropriate folders into each one's config directory:
 
-| CLI | Config directory |
+| Surface | Config directory |
 |-----|------------------|
-| Claude Code | `~/.claude/{skills,agents,hooks,commands,CLAUDE.md,AGENTS.md}` |
+| Claude Code, Claude Desktop, and Claude VS Code/Antigravity extensions | `~/.claude/{skills,agents,hooks,commands,CLAUDE.md,AGENTS.md}` |
 | Codex CLI | `~/.codex/{skills,AGENTS.md}` |
 | Gemini CLI | `~/.gemini/{skills,commands,GEMINI.md}` |
 | Cursor | `~/.cursor/skills/` |
 | Antigravity | `~/.gemini/{antigravity-ide,config}/skills/` |
+
+Claude Desktop and Claude editor extensions are detected even when the `claude` command is not on `PATH`.
 
 On Windows, Antigravity is also detected from the usual IDE install location:
 `%LOCALAPPDATA%\Programs\Antigravity IDE\Antigravity IDE.exe`.
