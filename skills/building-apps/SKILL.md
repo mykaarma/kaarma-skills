@@ -25,12 +25,12 @@ Do not use this skill when:
 
 Hard stop before app code: if the user says they want to build an app, tool, game, demo, prototype, or similar, first locate a repo-local SPEC or Plan file such as `SPEC.md`, `PLAN.md`, `spec.md`, `plan.md`, or a user-provided equivalent. Chat context, an off-repo document, or verbal requirements do not satisfy this prerequisite until captured in a repo-local file.
 
-The SPEC or Plan must include milestones, and each milestone must include acceptance criteria. A final-state feature list without milestones is not enough.
+The SPEC or Plan must include milestones, and each milestone must include acceptance criteria. A final-state feature list without milestones is not enough, and milestones without acceptance criteria are not enough.
 
-If no SPEC or Plan file is present, or if the file does not define milestones:
+If no SPEC or Plan file is present, the file does not define milestones, or any milestone lacks acceptance criteria:
 - Stop and tell the user the app build cannot start yet.
-- Ask the user to provide the SPEC/Plan file, approve creating one from their requirements, or approve updating the existing file with milestones.
-- Do not scaffold files, write app code, install dependencies, or start a dev server until that file exists with milestones.
+- Ask the user to provide the SPEC/Plan file, approve creating one from their requirements, or approve updating the existing file with milestones and acceptance criteria.
+- Do not scaffold files, write app code, install dependencies, or start a dev server until that file exists with milestones and acceptance criteria.
 
 ## Core Rules
 
