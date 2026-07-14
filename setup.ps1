@@ -1,7 +1,7 @@
 # skills installer for PowerShell
 #
 # Symlinks (or copies) skills, agents, hooks, commands, and engineering-principles
-# files into each detected CLI's config directory.
+# files into each detected CLI, desktop app, or IDE-extension config directory.
 
 param (
     [switch]$Copy,
@@ -96,14 +96,96 @@ function Install-SkillsAsCopies {
     Write-Info "$copied skills -> $dest_dir/"
 }
 
+function Test-MatchingChildDirectory {
+    param($dir)
+    if (-not (Test-Path $dir)) { return $false }
+    $match = Get-ChildItem -Path $dir -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '(?i)(claude|anthropic)' } |
+        Select-Object -First 1
+    return $null -ne $match
+}
+
+function Test-ClaudeSurface {
+    if (Get-Command claude -ErrorAction SilentlyContinue) { return $true }
+
+    $paths = @(
+        (Join-Path $HOME '.claude'),
+        (Join-Path $HOME 'Library/Application Support/Claude'),
+        (Join-Path $HOME '.config/Claude'),
+        (Join-Path $HOME '.config/claude')
+    )
+
+    if ($env:APPDATA) {
+        $paths += @(
+            (Join-Path $env:APPDATA 'Claude'),
+            (Join-Path $env:APPDATA 'Anthropic/Claude')
+        )
+    }
+
+    if ($env:LOCALAPPDATA) {
+        $paths += @(
+            (Join-Path $env:LOCALAPPDATA 'Claude'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/Claude'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/Claude/Claude.exe')
+        )
+    }
+
+    if ($env:USERPROFILE) {
+        $paths += @(
+            (Join-Path $env:USERPROFILE '.claude'),
+            (Join-Path $env:USERPROFILE 'AppData/Roaming/Claude'),
+            (Join-Path $env:USERPROFILE 'AppData/Roaming/Anthropic/Claude'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Claude'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Claude'),
+            (Join-Path $env:USERPROFILE 'AppData/Local/Programs/Claude/Claude.exe')
+        )
+    }
+
+    $programRoots = @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }
+    foreach ($root in $programRoots) {
+        $paths += @(
+            (Join-Path $root 'Claude'),
+            (Join-Path $root 'Anthropic/Claude'),
+            (Join-Path $root 'Claude/Claude.exe'),
+            (Join-Path $root 'Anthropic/Claude/Claude.exe')
+        )
+    }
+
+    foreach ($path in $paths) {
+        if ($path -and (Test-Path $path)) { return $true }
+    }
+
+    $extensionDirs = @(
+        (Join-Path $HOME '.vscode/extensions'),
+        (Join-Path $HOME '.vscode-insiders/extensions'),
+        (Join-Path $HOME '.cursor/extensions'),
+        (Join-Path $HOME '.antigravity-ide/extensions')
+    )
+
+    if ($env:USERPROFILE) {
+        $extensionDirs += @(
+            (Join-Path $env:USERPROFILE '.vscode/extensions'),
+            (Join-Path $env:USERPROFILE '.vscode-insiders/extensions'),
+            (Join-Path $env:USERPROFILE '.cursor/extensions'),
+            (Join-Path $env:USERPROFILE '.antigravity-ide/extensions')
+        )
+    }
+
+    foreach ($dir in $extensionDirs) {
+        if (Test-MatchingChildDirectory $dir) { return $true }
+    }
+
+    return $false
+}
+
 function Setup-Claude {
-    Write-Host '--- Claude Code ---'
-    if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
-        Write-Warn 'claude not found - skipping.'
+    Write-Host '--- Claude Code / Desktop / IDE Extension ---'
+    if (-not (Test-ClaudeSurface)) {
+        Write-Warn 'Claude surface not found - skipping. Install Claude Code, Claude Desktop, or the Claude extension for VS Code/Antigravity.'
         Write-Host ''
         return
     }
-    Write-Info 'claude found'
+    Write-Info 'Claude surface found'
     $dir = Join-Path $HOME '.claude'
     $backup_dir = Join-Path $dir "backup-$BACKUP_TS"
     if (-not (Test-Path $dir)) { $null = New-Item -ItemType Directory -Path $dir -Force }

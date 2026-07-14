@@ -4,10 +4,10 @@ set -euo pipefail
 # skills installer
 #
 # Symlinks (or copies) skills, agents, hooks, commands, and engineering-principles
-# files into each detected CLI's config directory.
+# files into each detected CLI, desktop app, or IDE-extension config directory.
 #
-# Detected CLIs:
-#   claude        — Claude Code            → ~/.claude/{skills,agents,hooks,commands,CLAUDE.md,AGENTS.md}
+# Detected surfaces:
+#   claude        — Claude Code/Desktop/IDE extension → ~/.claude/{skills,agents,hooks,commands,CLAUDE.md,AGENTS.md}
 #   codex         — OpenAI Codex CLI       → ~/.codex/{skills,AGENTS.md}
 #   gemini        — Google Gemini CLI      → ~/.gemini/{skills,commands,GEMINI.md}
 #   cursor        — Cursor                 → ~/.cursor/skills/
@@ -133,14 +133,51 @@ mark_hooks_executable() {
 # CLI installers
 # ---------------------------------------------------------------------------
 
+has_matching_child_dir() {
+    local dir="$1"
+    [ -d "$dir" ] || return 1
+    find "$dir" -maxdepth 1 -type d \( -iname '*claude*' -o -iname '*anthropic*' \) -print -quit | grep -q .
+}
+
+has_claude_surface() {
+    command -v claude >/dev/null 2>&1 && return 0
+    [ -d "$HOME/.claude" ] && return 0
+    [ -d "$HOME/Library/Application Support/Claude" ] && return 0
+    [ -d "$HOME/.config/Claude" ] && return 0
+    [ -d "$HOME/.config/claude" ] && return 0
+    [ -d "/Applications/Claude.app" ] && return 0
+    [ -d "$HOME/Applications/Claude.app" ] && return 0
+
+    if [ -n "${APPDATA:-}" ]; then
+        [ -d "$APPDATA/Claude" ] && return 0
+        [ -d "$APPDATA/Anthropic/Claude" ] && return 0
+    fi
+    if [ -n "${LOCALAPPDATA:-}" ]; then
+        [ -d "$LOCALAPPDATA/Claude" ] && return 0
+        [ -d "$LOCALAPPDATA/Programs/Claude" ] && return 0
+        [ -d "$LOCALAPPDATA/Programs/Claude/Claude.exe" ] && return 0
+    fi
+
+    for extension_dir in \
+        "$HOME/.vscode/extensions" \
+        "$HOME/.vscode-insiders/extensions" \
+        "$HOME/.cursor/extensions" \
+        "$HOME/.antigravity-ide/extensions"
+    do
+        has_matching_child_dir "$extension_dir" && return 0
+    done
+
+    return 1
+}
+
 setup_claude() {
-    echo "--- Claude Code ---"
-    if ! command -v claude >/dev/null 2>&1; then
-        warn "claude not found — skipping. Install: https://docs.anthropic.com/en/docs/claude-code"
+    echo "--- Claude Code / Desktop / IDE Extension ---"
+    if ! has_claude_surface; then
+        warn "Claude surface not found — skipping. Install Claude Code, Claude Desktop, or the Claude extension for VS Code/Antigravity."
         echo ""
         return
     fi
-    info "claude found"
+    info "Claude surface found"
 
     local dir="$HOME/.claude"
     local backup_dir="$dir/backup-$BACKUP_TS"
